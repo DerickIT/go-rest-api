@@ -8,7 +8,6 @@ import (
 	"github.com/derickit/go-rest-api/internal/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeebo/assert"
 )
 
 func TestAuthMiddleware(t *testing.T) {
