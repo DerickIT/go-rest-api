@@ -8,6 +8,7 @@ import (
 
 	"github.com/derickit/go-rest-api/internal/models"
 	"github.com/derickit/go-rest-api/internal/util"
+	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 )
@@ -36,6 +37,16 @@ func Setup(env models.ServiceEnv) *AppLogger {
 		appLogger.zLogger = zerolog.New(logDest).With().Caller().Timestamp().Logger().Level(lvl)
 	})
 	return appLogger
+}
+
+func (l *AppLogger) WithReqID(ctx *gin.Context) (zerolog.Logger, string) {
+	if rID := ctx.Request.Context().Value(util.ContextKey(util.RequestIdentifier)); rID != nil {
+		if reqID, ok := rID.(string); ok {
+			return l.zLogger.With().Str(util.RequestIdentifier, reqID).Logger(), reqID
+		}
+		return l.zLogger, ""
+	}
+	return l.zLogger, ""
 }
 
 func ZerologLevel(level string) zerolog.Level {
