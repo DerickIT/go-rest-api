@@ -9,7 +9,7 @@ type APIError struct {
 	ErrorCode      string `json:"errorCode"`
 }
 
-type OrderInPut struct {
+type OrderInput struct {
 	Products []ProductInput `json:"products" binding:"required"`
 }
 
