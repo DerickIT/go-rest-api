@@ -171,6 +171,35 @@ func (o *OrdersHandler) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, order)
 }
 
+func (o *OrdersHandler) DeleteByID(c *gin.Context) {
+	lgr, requestID := o.logger.WithReqID(c)
+	id := c.Param(OrderIDPath)
+	oID, err := primitive.ObjectIDFromHex(id)
+	if oID.IsZero() || err != nil {
+		aErr := &external.APIError{
+			HTTPStatusCode: http.StatusBadRequest,
+			ErrorCode:      "",
+			Message:        "Invalid order id",
+			DebugID:        requestID,
+		}
+		lgr.Error().Int("HttpStatusCode", aErr.HTTPStatusCode).Str("ErrorCode", aErr.ErrorCode).Msg(aErr.Message)
+		c.AbortWithStatusJSON(aErr.HTTPStatusCode, aErr)
+		return
+	}
+	dErr := o.oDataSvc.DeleteByID(c, oID)
+	if dErr != nil {
+		aErr := &external.APIError{
+			HTTPStatusCode: http.StatusInternalServerError,
+			ErrorCode:      "",
+			Message:        "fill this in with a meaningful error message",
+			DebugID:        requestID,
+		}
+		lgr.Error().Int("HttpStatusCode", aErr.HTTPStatusCode).Str("ErrorCode", aErr.ErrorCode).Msg(aErr.Message)
+		return
+	}
+	c.JSON(http.StatusNoContent, nil)
+}
+
 func (o *OrdersHandler) parseLimitQueryParam(c *gin.Context) (int64, *external.APIError) {
 	lgr, requestID := o.logger.WithReqID(c)
 	l := db.DefaultPageSize
