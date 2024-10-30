@@ -287,3 +287,35 @@ func TestDeleteOrderByIDSuccess(t *testing.T) {
 	r.ServeHTTP(recorder, c.Request)
 	assert.Equal(t, http.StatusNoContent, recorder.Code)
 }
+
+func TestDeleteOrderByID_DBFailure(t *testing.T) {
+	lgr := logger.Setup(models.ServiceEnv{Name: "test"})
+	recorder := httptest.NewRecorder()
+	gin.SetMode(gin.TestMode)
+	c, r := gin.CreateTestContext(recorder)
+	handler := handlers.NewOrdersHandler(&mocks.MockOrdersDataService{
+		DeleteByIDFunc: func(_ context.Context, _ primitive.ObjectID) error {
+			return errors.New("db error")
+		},
+	}, lgr)
+	r.DELETE("/ecommerce/v1/roders/:id", handler.DeleteByID)
+	c.Request, _ = http.NewRequest(http.MethodDelete, "/ecommerce/v1/orders/1", nil)
+	r.ServeHTTP(recorder, c.Request)
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+}
+
+func TestDeleteOrderByID_BadPathParam(t *testing.T) {
+	lgr := logger.Setup(models.ServiceEnv{Name: "test"})
+	recorder := httptest.NewRecorder()
+	gin.SetMode(gin.TestMode)
+	c, r := gin.CreateTestContext(recorder)
+	handler := handlers.NewOrdersHandler(&mocks.MockOrdersDataService{
+		DeleteByIDFunc: func(ctx context.Context, id primitive.ObjectID) error {
+			return nil
+		},
+	}, lgr)
+	r.DELETE("/ecommerce/v1/orders/:id", handler.DeleteByID)
+	c.Request, _ = http.NewRequest(http.MethodDelete, "/ecommerce/v1/orders/''", nil)
+	r.ServeHTTP(recorder, c.Request)
+	assert.Equal(t, http.StatusBadRequest, recorder.Code)
+}
