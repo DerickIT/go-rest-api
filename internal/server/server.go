@@ -20,7 +20,7 @@ import (
 
 var startOnce sync.Once
 
-func StartOnce(svcEnv models.ServiceEnv, dbMgr db.MongoManager, lgr *logger.AppLogger) {
+func StartService(svcEnv models.ServiceEnv, dbMgr db.MongoManager, lgr *logger.AppLogger) {
 	startOnce.Do(func() {
 		r := WebRouter(svcEnv, dbMgr, lgr)
 		err := r.Run(":" + svcEnv.Port)
